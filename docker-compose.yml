@@ -1,0 +1,49 @@
+version: '3.8'
+
+services:
+  node_backend:
+    container_name: node_naamche
+    image: node_naamche:0.0.5
+    build:
+      context: .
+    ports:
+      - "8000:8000"
+    environment:
+      - PORT=8000
+      - PGDATABASE=housing_db
+      - PGUSER=sc
+      - PGPASSWORD=sc
+      - PGHOST=node_db
+      - REDISHOST=redis_processor
+      - REDISPORT=6379
+      - REDISPASSWORD=sc
+      - JWT_TOKEN=SANGAM
+      - JWT_LIFETIME=7d
+      - SERVER_HOST=node_backend
+    depends_on:
+      - node_db
+      - redis_processor
+  node_db:
+    container_name: node_db_postgres
+    image: postgres:latest
+    ports:
+      - "5432:5432"
+    environment:
+      - POSTGRES_USER=sc
+      - POSTGRES_PASSWORD=sc
+      - POSTGRES_DB=housing_db
+    volumes:
+      - nps_data:/var/lib/postgresql/nps_data
+  redis_processor:
+    container_name: node_redis
+    image: redis:latest
+    restart: "always"
+    ports:
+      - "6379:6379"
+    command: "redis-server --save 20 1 --loglevel warning --requirepass sc"
+    volumes:
+      - nrs_cache:/data
+    
+volumes:
+  nps_data: {}
+  nrs_cache: {}
